@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+   <head>
+       <meta charset="utf-8">
+	   <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/echarts.min.js"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts-gl/echarts-gl.min.js"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts-stat/ecStat.min.js"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/extension/dataTool.min.js"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/map/js/china.js"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/map/js/world.js"></script>
+       <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=ZUONbpqGBsYGXNIYHicvbAbM"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/extension/bmap.min.js"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/simplex.js"></script>
+       <script src="js/jquery.min.js"></script>
+	   <script language="JavaScript">
+			setTimeout(function(){location.reload()},60000); //指定60秒刷新一次
+	   </script>
+	   <style>
+			header{ display: inline-block; margin:0 auto; text-align: center;overflow: hidden }
+           .header img{ width:78px; height:78px; float:left;}
+           .header .title{display: inline-block; height:78px; line-height: 78px;  color:white; font-size: 30px;float:left; }
+	   </style>
+   </head>
+   <body style="height: 100%; margin: 0">
+       <div id="container" style="height: 100%"></div>
+       
+	   
+<script type="text/javascript">
+var dom = document.getElementById("container");
+var myChart = echarts.init(dom);
+var app = {};
+option = null;
+app.title = '宽带受理监控（每日）';
+
+//获取当前日期
+var date = new Date();
+var year = date.getFullYear();
+var month = (date.getMonth()+1);
+var day = date.getDate();
+var time = year + "年" + month + "月" + day + "日";
+//alert("当前日期"+time);
+
+var unicomLogo = './img/UnicomLogo.png';
+
+
+//获取接口Json数据
+$(document).ready(function(){
+    //跨域请求实例
+    var url = 'http://134.226.200.100:8081/api/Ztkd?id=1';
+    var dataArea_2_name;
+    $.getJSON(url,function(data){
+        //$('#result').append('<p>stat_day:'+data.stat_day[1]+data.stat_day[2]+'</p>');
+        //$('#result').append('<p>name:'+data.name+'</p>');
+        //$('#result').append('<p>created:'+data.created+'</p>');
+        //$('#result').append('<p>loc_name:'+data.loc_name+'</p>');
+
+        //dataArea_2_name ="['"+ data.area_2_name[0]+"','"+data.area_2_name[1]+"','"+data.area_2_name[2]+"','"+data.area_2_name[3]+"','"+data.area_2_name[4]+"','"+data.area_2_name[5]+"','"+data.area_2_name[6]+"','"+data.area_2_name[7]+"','"+data.area_2_name[8]+"','"+data.area_2_name[9]+"','"+data.area_2_name[10]+"','"+data.area_2_name[11]+"']";
+        //console.log(dataArea_2_name);
+        console.log(data.area_2_name)
+		
+		//Echarts绘图
+        option = {
+
+            backgroundColor: '#000',//整体为黑色背景
+            title: {
+                //backgroundColor: '#fff',
+                text:[
+						'{Logo|}{title|宽带线上受理监控}'
+				].join('\n'),
+				
+				textStyle:{
+					rich:{
+						Logo:{
+							height:60,
+							align:'left',
+							backgroundColor:{
+								image:unicomLogo
+							}
+						},
+						title:{
+							color:'#fff',
+							height:60,
+							fontSize:28
+							
+						}
+					}
+				},
+                subtext: time,
+                x: 'center',
+                y: 'top',            
+            },
+			
+            tooltip: {
+                show: true,
+                trigger: 'item',
+                formatter: "{b}: {c}"
+            },
+            legend: {
+                orient: 'vertical',
+                x: 'left',
+				y: 'center',
+                data: ['当日订单','受理成功','未受理','用户预约处理','码上装', '公众号', '趸交一年', '趸交两年','融合'],
+                textStyle:{
+                    color: '#fff'
+                }
+            },
+            grid: {//柱状堆叠图
+                left: '12%',
+                right: '30%',
+                top: '20%',
+                bottom: '15%',
+                containLabel: true
+            },
+
+            xAxis: {
+                type: 'category',
+                name: '区域',
+                nameTextStyle: {
+                    color: '#fff',
+                    fontSize: 16
+                },
+                axisLine: {
+                    lineStyle: {
+                        color: '#eee'
+                    }
+                },
+                //boundaryGap: false,
+                //data: ['青山湖','青云谱','东湖区','西湖区','广场','红谷滩','南昌县','新建区','进贤县','安义县','VIP中心','电商']
+                data: data.area_2_name
+            },
+            yAxis: {
+                type: 'value',
+                name: '单数',
+                nameTextStyle: {
+                    color: '#fff',
+                    fontSize: 16
+                },
+                axisLine: {
+                    lineStyle: {
+                        color: '#eee'
+                    }
+                },
+            },
+
+            series: [
+                //宽带订单受理图
+                {
+                    name:'当日订单',
+                    type:'bar',
+                    barWidth : 15,
+                    stack: '当日订单',
+					label:{
+						normal:{
+							show:true,
+							position:'insideTop'
+						}
+					},
+                    data:data.dd_dt
+                },
+                {
+                    name:'受理成功',
+                    type:'bar',
+                    barWidth : 15,
+                    stack: '受理结果',
+					label:{
+						normal:{
+							show:true,
+							position:'insideTop'
+						}
+					},
+                    data:data.done
+                },
+                {
+                    name:'未受理',
+                    type:'bar',
+                    barWidth : 15,
+                    stack: '受理结果',
+					label:{
+						normal:{
+							show:true,
+							position:'insideTop'
+						}
+					},
+                    data:data.not_done
+                },
+                {
+                    name:'用户预约处理',
+                    type:'bar',
+                    barWidth : 1,
+                    stack: '受理结果',
+					label:{
+						normal:{
+							show:true,
+							position:'insideTop'
+						}
+					},
+                    data:data.td
+                },{//柱状图统计分析标题（订单总数）
+                    type: 'pie',
+                    selectedMode: 'single',
+                    center: ['35%', '35%'],
+                    radius: ['0%', '12%'],
+                    color: ['#000'],
+
+                    label: {
+                        normal: {
+                            position: 'center',
+                            formatter: '当日订单 : '+data.dd_dt[12]+'单',
+
+                            textStyle: {
+                                color: '#fff',
+                                fontWeight: 'bold',
+                                fontSize: 8
+                            }
+                        }
+                    },
+                    labelLine: {
+                        normal: {
+                            show: false
+                        }
+                    },
+					data:[1]//画圆，数值占比为100%
+				},{//柱状图统计分析
+                    type: 'pie',
+                    selectedMode: 'single',
+                    center: ['35%', '35%'],
+                    radius: ['12%', '24%'],
+                    //color: ['#98FB98', '#EEDC82'],
+
+                    label: {
+                        normal: {
+                            position: 'outside',
+                            formatter: '{b}: {c}单 \n{d}%',
+
+                            textStyle: {
+                                color: '#fff',
+                                fontWeight: 'bold',
+                                fontSize: 8
+                            }
+                        }
+                    },
+                    labelLine: {
+                        normal: {
+                            show: true
+                        }
+                    },
+                    data: [{value:data.done[12],name:'受理成功'},{value:data.not_done[12],name:'未受理'},{value:data.td[12],name:'用户预约处理'}]
+                },{//订单来源环形图标题
+                    type: 'pie',
+                    selectedMode: 'single',
+                    center: ['85%', '30%'],
+                    radius: ['0%', '12%'],
+                    color: ['#000'],
+
+                    label: {
+                        normal: {
+                            position: 'center',
+                            formatter: '订单来源',
+
+                            textStyle: {
+                                color: '#fff',
+                                fontWeight: 'bold',
+                                fontSize: 8
+                            }
+                        }
+                    },
+                    labelLine: {
+                        normal: {
+                            show: false
+                        }
+                    },
+					data:[1]//画圆，数值占比为100%
+				},{//订单来源环形图
+                    type: 'pie',
+                    selectedMode: 'single',
+                    center: ['85%', '30%'],
+                    radius: ['12%', '24%'],
+                    //color: ['#98FB98', '#EEDC82'],
+
+                    label: {
+                        normal: {
+                            position: 'outside',
+                            formatter: '{b}: {c}单 \n{d}%',
+
+                            textStyle: {
+                                color: '#fff',
+                                fontWeight: 'bold',
+                                fontSize: 8
+                            }
+                        }
+                    },
+                    labelLine: {
+                        normal: {
+                            show: true
+                        }
+                    },
+                    data: [{value:data.gzh[12],name:'公众号'},{value:data.msz[12],name:'码上装'}]
+                },{//资费套餐环形图标题
+                    type: 'pie',
+                    selectedMode: 'single',
+                    center: ['85%', '70%'],
+                    radius: ['0%', '12%'],
+                    color: ['#000'],
+
+                    label: {
+                        normal: {
+                            position: 'center',
+                            formatter: '套餐资费',
+
+                            textStyle: {
+                                color: '#fff',
+                                fontWeight: 'bold',
+                                fontSize: 8
+                            }
+                        }
+                    },
+                    labelLine: {
+                        normal: {
+                            show: false
+                        }
+                    },
+					data:[1]//画圆，数值占比为100%
+				},{//资费套餐环形图
+                    type: 'pie',
+                    selectedMode: 'single',
+                    center: ['85%', '70%'],
+                    radius: ['12%', '24%'],
+                    //color: ['#98FB98', '#EEDC82'],
+
+                    label: {
+                        normal: {
+                            position: 'outside',
+                            formatter: '{b}: {c}单 \n{d}%',
+
+                            textStyle: {
+                                color: '#fff',
+                                fontWeight: 'bold',
+                                fontSize: 8
+                            }
+                        }
+                    },
+                    labelLine: {
+                        normal: {
+                            show: true
+                        }
+                    },
+                    data: [{value:data.dj_1[12],name:'趸交一年'},{value:data.dj_2[12],name:'趸交两年'},{value:data.rh[12],name:'融合'}]
+                }]
+        };;
+        if (option && typeof option === "object") {
+            myChart.setOption(option, true);
+        }
+
+    });
+
+});
+
+       </script>
+   </body>
+</html>
